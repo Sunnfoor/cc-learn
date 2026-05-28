@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npm start *)",
+      "Bash(tasklist)",
+      "Bash(taskkill //F //IM electron.exe)",
+      "Bash(git *)",
+      "Bash(gh --version)",
+      "Bash(winget --version)",
+      "Bash(winget install *)",
+      "Bash(curl -L -o gh-installer.exe \"https://github.com/cli/cli/releases/download/v2.63.0/gh_2.63.0_windows_amd64.msi\")",
+      "Bash(msiexec //i gh-installer.exe //quiet //norestart)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Program Files \\(x86\\)/**)",
+      "Bash(where gh *)",
+      "Bash(msiexec.exe *)",
+      "Bash(xxd)",
+      "Bash(curl -L -o gh.zip \"https://github.com/cli/cli/releases/download/v2.63.0/gh_2.63.0_windows_amd64.zip\")",
+      "Bash(unzip -o gh.zip)",
+      "Bash(./bin/gh.exe *)",
+      "Bash(powershell *)",
+      "Bash(./gh.exe auth *)",
+      "Bash(echo \"Exit: $?\")"
+    ]
+  }
+}
