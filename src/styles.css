@@ -195,19 +195,53 @@ h1 {
   width: 380px;
 }
 
+.modal-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-header-row h2 {
+  margin-bottom: 0;
+}
+
+.close-btn {
+  width: 28px;
+  height: 28px;
+  background: #2a2a4a;
+  border: none;
+  border-radius: 6px;
+  color: #888;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #e94560;
+  color: white;
+}
+
 .stats-tabs {
   display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
+  gap: 4px;
+  background: #1a1a2e;
+  padding: 4px;
+  border-radius: 10px;
+  margin-bottom: 20px;
 }
 
 .stats-tab {
   flex: 1;
-  padding: 10px;
-  background: #2a2a4a;
+  padding: 10px 16px;
+  background: transparent;
   border: none;
   border-radius: 8px;
   color: #888;
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -221,47 +255,82 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.nav-btn {
+  background: #2a2a4a;
+  border: none;
+  color: #888;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover {
+  background: #3a3a5a;
+  color: white;
 }
 
 .stats-period {
-  font-size: 14px;
+  font-size: 13px;
   color: #e94560;
+  font-weight: 500;
 }
 
 .stats-content {
   background: #0f3460;
-  border-radius: 10px;
-  padding: 20px;
-  min-height: 200px;
+  border-radius: 12px;
+  padding: 24px;
+  min-height: 240px;
 }
 
 .stats-summary {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .stats-main-number {
-  font-size: 48px;
+  font-size: 64px;
   font-weight: bold;
   color: #e94560;
+  line-height: 1;
+  text-shadow: 0 0 30px rgba(233, 69, 96, 0.3);
 }
 
 .stats-main-label {
-  font-size: 14px;
+  font-size: 12px;
   color: #888;
-  margin-top: 5px;
+  margin-top: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
 }
 
 .stats-detail-row {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #2a2a4a;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .stats-detail-row:last-child {
   border-bottom: none;
+}
+
+.stats-detail-row span:first-child {
+  color: #888;
+  font-size: 13px;
+}
+
+.stats-detail-row span:last-child {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .stats-trend {

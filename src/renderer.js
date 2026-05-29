@@ -375,10 +375,10 @@ async function calculateMonthlyStats(monthOffset) {
 function renderWeeklyStats(stats) {
   const trendClass = stats.trend !== null && stats.trend < 0 ? 'down' : '';
   const trendText = stats.trend !== null
-    ? (stats.trend >= 0 ? `↑ 比上周+${stats.trend}%` : `↓ 比上周${stats.trend}%`)
-    : '（无上周数据）';
+    ? (stats.trend >= 0 ? `+${stats.trend}%` : `${stats.trend}%`)
+    : '暂无数据';
 
-  let html = `
+  statsContent.innerHTML = `
     <div class="stats-summary">
       <div class="stats-main-number">${stats.totalPomodoros}</div>
       <div class="stats-main-label">个番茄钟</div>
@@ -400,17 +400,15 @@ function renderWeeklyStats(stats) {
       <span>${stats.dateRange}</span>
     </div>
   `;
-
-  statsContent.innerHTML = html;
 }
 
 function renderMonthlyStats(stats) {
   const trendClass = stats.trend !== null && stats.trend < 0 ? 'down' : '';
   const trendText = stats.trend !== null
-    ? (stats.trend >= 0 ? `↑ 比上月+${stats.trend}%` : `↓ 比上月${stats.trend}%`)
-    : '（无上月数据）';
+    ? (stats.trend >= 0 ? `+${stats.trend}%` : `${stats.trend}%`)
+    : '暂无数据';
 
-  let html = `
+  statsContent.innerHTML = `
     <div class="stats-summary">
       <div class="stats-main-number">${stats.totalPomodoros}</div>
       <div class="stats-main-label">个番茄钟</div>
@@ -432,8 +430,6 @@ function renderMonthlyStats(stats) {
       <span>${stats.dateRange}</span>
     </div>
   `;
-
-  statsContent.innerHTML = html;
 }
 
 async function updateStats() {
