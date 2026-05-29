@@ -24,6 +24,7 @@ const saveSettingsBtn = document.getElementById('saveSettings');
 const cancelSettingsBtn = document.getElementById('cancelSettings');
 
 const statsBtn = document.getElementById('statsBtn');
+const cardBtn = document.getElementById('cardBtn');
 const statsModal = document.getElementById('statsModal');
 const weeklyTab = document.getElementById('weeklyTab');
 const monthlyTab = document.getElementById('monthlyTab');
@@ -32,6 +33,12 @@ const nextPeriod = document.getElementById('nextPeriod');
 const statsPeriod = document.getElementById('statsPeriod');
 const statsContent = document.getElementById('statsContent');
 const closeStatsBtn = document.getElementById('closeStats');
+
+const cardModal = document.getElementById('cardModal');
+const cardCanvas = document.getElementById('cardCanvas');
+const closeCardBtn = document.getElementById('closeCard');
+const downloadCardBtn = document.getElementById('downloadCard');
+const copyCardBtn = document.getElementById('copyCard');
 
 let currentStatsType = 'weekly';
 let currentPeriodOffset = 0;
@@ -466,6 +473,7 @@ settingsBtn.addEventListener('click', openSettings);
 saveSettingsBtn.addEventListener('click', saveSettings);
 cancelSettingsBtn.addEventListener('click', closeSettings);
 statsBtn.addEventListener('click', openStats);
+cardBtn.addEventListener('click', showCardModal);
 closeStatsBtn.addEventListener('click', closeStats);
 
 weeklyTab.addEventListener('click', () => {
@@ -514,6 +522,16 @@ statsModal.addEventListener('click', (e) => {
   }
 });
 
+cardModal.addEventListener('click', (e) => {
+  if (e.target === cardModal) {
+    closeCard();
+  }
+});
+
+closeCardBtn.addEventListener('click', closeCard);
+downloadCardBtn.addEventListener('click', downloadCard);
+copyCardBtn.addEventListener('click', copyCard);
+
 window.electronAPI.onTrayStart(() => {
   if (!isRunning) {
     startTimer();
@@ -530,3 +548,342 @@ window.electronAPI.onTrayPause(() => {
 window.electronAPI.onShortcutToggle(() => {
   startTimer();
 });
+
+// Card generation functions
+function getDayName(dateStr) {
+  const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  const date = new Date(dateStr);
+  return days[date.getDay()];
+}
+
+async function getTodayStats() {
+  const sessions = await window.electronAPI.storeGet('sessions') || [];
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todaySessions = sessions.filter(s => s.date === todayStr && s.type === 'work');
+  const totalMinutes = todaySessions.reduce((sum, s) => sum + Math.round(s.duration / 60), 0);
+
+  // Get week stats for progress bar
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const weekSessions = sessions.filter(s => {
+    const d = new Date(s.date);
+    return s.type === 'work' && d >= weekStart;
+  });
+  const weekTotal = weekSessions.length;
+
+  return {
+    date: todayStr,
+    dateDisplay: new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }),
+    dayName: getDayName(todayStr),
+    pomodorosCompleted: todaySessions.length,
+    totalMinutes: totalMinutes,
+    weekTotal: weekTotal
+  };
+}
+
+// Hand-drawn style drawing helpers
+function drawHandDrawnLine(ctx, x1, y1, x2, y2, wobble = 2) {
+  ctx.beginPath();
+  ctx.moveTo(x1 + (Math.random() - 0.5) * wobble, y1 + (Math.random() - 0.5) * wobble);
+
+  const steps = 3;
+  for (let i = 1; i <= steps; i++) {
+    const t = i / steps;
+    const x = x1 + (x2 - x1) * t + (Math.random() - 0.5) * wobble;
+    const y = y1 + (y2 - y1) * t + (Math.random() - 0.5) * wobble;
+    ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
+
+function drawHandDrawnRect(ctx, x, y, w, h, wobble = 2) {
+  drawHandDrawnLine(ctx, x, y, x + w, y, wobble);
+  drawHandDrawnLine(ctx, x + w, y, x + w, y + h, wobble);
+  drawHandDrawnLine(ctx, x + w, y + h, x, y + h, wobble);
+  drawHandDrawnLine(ctx, x, y + h, x, y, wobble);
+}
+
+function drawHandDrawnCircle(ctx, cx, cy, r, wobble = 2) {
+  ctx.beginPath();
+  const segments = 24;
+  for (let i = 0; i <= segments; i++) {
+    const angle = (i / segments) * Math.PI * 2;
+    const wobbleR = r + (Math.random() - 0.5) * wobble;
+    const x = cx + Math.cos(angle) * wobbleR;
+    const y = cy + Math.sin(angle) * wobbleR;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.stroke();
+}
+
+// Draw a cute hand-drawn tomato
+function drawTomato(ctx, cx, cy, size) {
+  const s = size / 100;
+
+  // Tomato body
+  ctx.fillStyle = '#e94560';
+  ctx.strokeStyle = '#c73e54';
+  ctx.lineWidth = 2 * s;
+
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + 5 * s, 40 * s, 38 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Tomato highlight (shine)
+  ctx.fillStyle = 'rgba(255, 200, 200, 0.3)';
+  ctx.beginPath();
+  ctx.ellipse(cx - 12 * s, cy - 8 * s, 12 * s, 8 * s, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Leaves
+  ctx.fillStyle = '#4a9960';
+  ctx.strokeStyle = '#3d7a4f';
+  ctx.lineWidth = 1.5 * s;
+
+  // Left leaf
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - 30 * s);
+  ctx.bezierCurveTo(cx - 15 * s, cy - 45 * s, cx - 35 * s, cy - 40 * s, cx - 25 * s, cy - 25 * s);
+  ctx.bezierCurveTo(cx - 30 * s, cy - 30 * s, cx - 20 * s, cy - 30 * s, cx, cy - 30 * s);
+  ctx.fill();
+  ctx.stroke();
+
+  // Right leaf
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - 30 * s);
+  ctx.bezierCurveTo(cx + 15 * s, cy - 45 * s, cx + 35 * s, cy - 40 * s, cx + 25 * s, cy - 25 * s);
+  ctx.bezierCurveTo(cx + 30 * s, cy - 30 * s, cx + 20 * s, cy - 30 * s, cx, cy - 30 * s);
+  ctx.fill();
+  ctx.stroke();
+
+  // Stem
+  ctx.fillStyle = '#3d7a4f';
+  ctx.fillRect(cx - 3 * s, cy - 38 * s, 6 * s, 12 * s);
+
+  // Face - cute eyes
+  ctx.fillStyle = '#5a3040';
+  ctx.beginPath();
+  ctx.ellipse(cx - 12 * s, cy + 5 * s, 4 * s, 5 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx + 12 * s, cy + 5 * s, 4 * s, 5 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Eye highlights
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(cx - 10 * s, cy + 3 * s, 2 * s, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx + 14 * s, cy + 3 * s, 2 * s, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Blush
+  ctx.fillStyle = 'rgba(255, 150, 150, 0.4)';
+  ctx.beginPath();
+  ctx.ellipse(cx - 22 * s, cy + 15 * s, 8 * s, 5 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx + 22 * s, cy + 15 * s, 8 * s, 5 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Smile
+  ctx.strokeStyle = '#5a3040';
+  ctx.lineWidth = 2 * s;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(cx, cy + 12 * s, 10 * s, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+}
+
+// Draw small decorative leaf
+function drawLeaf(ctx, x, y, size, angle) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.fillStyle = '#4a9960';
+  ctx.strokeStyle = '#3d7a4f';
+  ctx.lineWidth = 1;
+
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo(size * 0.5, -size * 0.3, size, size * 0.3, 0, size);
+  ctx.bezierCurveTo(-size * 0.5, size * 0.3, -size, -size * 0.3, 0, 0);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// Add paper texture effect
+function addPaperTexture(ctx, width, height) {
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const noise = (Math.random() - 0.5) * 15;
+    data[i] = Math.min(255, Math.max(0, data[i] + noise));
+    data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
+    data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+}
+
+function renderCardToCanvas(canvas, stats) {
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width;
+  const height = canvas.height;
+
+  // Warm cream background
+  ctx.fillStyle = '#fef9f3';
+  ctx.fillRect(0, 0, width, height);
+
+  // Paper texture
+  addPaperTexture(ctx, width, height);
+
+  // Top decorative line (hand-drawn style)
+  ctx.strokeStyle = '#e8ddd4';
+  ctx.lineWidth = 3;
+  drawHandDrawnLine(ctx, 20, 25, width - 20, 25, 3);
+
+  // Decorative leaves
+  drawLeaf(ctx, 35, 35, 12, -0.5);
+  drawLeaf(ctx, width - 35, 35, 12, 0.5);
+
+  // Cute tomato illustration
+  drawTomato(ctx, width / 2, 95, 120);
+
+  // Title under tomato
+  ctx.fillStyle = '#888';
+  ctx.font = '12px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('今天完成了', width / 2, 175);
+
+  // Main pomodoro count
+  ctx.fillStyle = '#e94560';
+  ctx.font = 'bold 48px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(stats.pomodorosCompleted, width / 2, 225);
+
+  ctx.fillStyle = '#5a5a5a';
+  ctx.font = '16px Arial';
+  ctx.fillText('个番茄钟', width / 2, 248);
+
+  // Time box with hand-drawn border
+  ctx.fillStyle = '#fff';
+  drawHandDrawnRect(ctx, 60, 265, width - 120, 55, 3);
+  ctx.fill();
+
+  ctx.fillStyle = '#888';
+  ctx.font = '11px Arial';
+  ctx.fillText('今日专注时长', width / 2, 285);
+
+  const hours = Math.floor(stats.totalMinutes / 60);
+  const mins = stats.totalMinutes % 60;
+  const timeStr = hours > 0 ? `${hours}小时${mins}分` : `${mins}分钟`;
+
+  ctx.fillStyle = '#e94560';
+  ctx.font = 'bold 20px Arial';
+  ctx.fillText(timeStr, width / 2, 308);
+
+  // Week progress bar
+  ctx.fillStyle = '#888';
+  ctx.font = '11px Arial';
+  ctx.fillText('本周进度', width / 2, 345);
+
+  // Progress bar background
+  const barWidth = width - 100;
+  const barHeight = 8;
+  const barX = 50;
+  const barY = 355;
+
+  ctx.fillStyle = '#ebe5de';
+  ctx.beginPath();
+  ctx.roundRect(barX, barY, barWidth, barHeight, 4);
+  ctx.fill();
+
+  // Progress bar fill (max 20 pomodoros for full)
+  const progress = Math.min(stats.weekTotal / 20, 1);
+  if (progress > 0) {
+    ctx.fillStyle = '#4a9960';
+    ctx.beginPath();
+    ctx.roundRect(barX, barY, barWidth * progress, barHeight, 4);
+    ctx.fill();
+  }
+
+  // Week count text
+  ctx.fillStyle = '#5a5a5a';
+  ctx.font = '12px Arial';
+  ctx.fillText(`本周共 ${stats.weekTotal} 个番茄`, width / 2, 385);
+
+  // Bottom decorative line
+  ctx.strokeStyle = '#e8ddd4';
+  ctx.lineWidth = 2;
+  drawHandDrawnLine(ctx, 40, 400, width - 40, 400, 2);
+
+  // Motivational quote
+  ctx.fillStyle = '#c5a573';
+  ctx.font = 'italic 13px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('"专注的时光，都是珍贵礼物"', width / 2, 422);
+
+  // Date at bottom
+  ctx.fillStyle = '#aaa';
+  ctx.font = '11px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(stats.dateDisplay + ' · ' + stats.dayName, width / 2, 445);
+
+  // Bottom decorative elements - small flowers/dots
+  ctx.fillStyle = '#f5a623';
+  ctx.beginPath();
+  ctx.arc(50, 455, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#e94560';
+  ctx.beginPath();
+  ctx.arc(width / 2, 458, 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#4a9960';
+  ctx.beginPath();
+  ctx.arc(width - 50, 455, 3, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+async function showCardModal() {
+  const stats = await getTodayStats();
+  renderCardToCanvas(cardCanvas, stats);
+  cardModal.classList.remove('hidden');
+  setTimeout(() => cardModal.classList.add('active'), 10);
+}
+
+function closeCard() {
+  cardModal.classList.remove('active');
+  setTimeout(() => {
+    cardModal.classList.add('hidden');
+  }, 300);
+}
+
+async function downloadCard() {
+  const dataUrl = cardCanvas.toDataURL('image/png');
+  await window.electronAPI.saveImage(dataUrl);
+}
+
+async function copyCard() {
+  return new Promise((resolve, reject) => {
+    cardCanvas.toBlob(async (blob) => {
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]);
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  });
+}

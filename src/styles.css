@@ -340,3 +340,30 @@ h1 {
 .stats-trend.down {
   color: #f87171;
 }
+
+/* Card Modal */
+.card-modal-content {
+  width: 380px;
+}
+
+.card-preview {
+  background: #0a0a15;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+#cardCanvas {
+  border-radius: 8px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.card-actions .btn {
+  flex: 1;
+}

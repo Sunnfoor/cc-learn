@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Notification, ipcMain, Tray, Menu, nativeImage, globalShortcut } = require('electron');
+const { app, BrowserWindow, Notification, ipcMain, Tray, Menu, nativeImage, globalShortcut, dialog } = require('electron');
 
 let store;
 let tray;
@@ -159,6 +159,22 @@ ipcMain.handle('session-add', (event, session) => {
   sessions.push(session);
   store.set('sessions', sessions);
   return sessions.length;
+});
+
+ipcMain.handle('save-image', async (event, dataUrl) => {
+  const { filePath } = await dialog.showSaveDialog(mainWindow, {
+    title: '保存专注卡片',
+    defaultPath: `focus-card-${Date.now()}.png`,
+    filters: [{ name: 'Images', extensions: ['png'] }]
+  });
+
+  if (filePath) {
+    const base64Data = dataUrl.replace(/^data:image\/png;base64,/, '');
+    const fs = require('fs');
+    fs.writeFileSync(filePath, base64Data, 'base64');
+    return true;
+  }
+  return false;
 });
 
 function showNotification(title, body) {

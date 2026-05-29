@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   storeSet: (key, value) => ipcRenderer.invoke('store-set', key, value),
   storeGetAll: () => ipcRenderer.invoke('store-get-all'),
   sessionAdd: (session) => ipcRenderer.invoke('session-add', session),
+  saveImage: (dataUrl) => ipcRenderer.invoke('save-image', dataUrl),
   onTrayStart: (callback) => ipcRenderer.on('tray-start', callback),
   onTrayPause: (callback) => ipcRenderer.on('tray-pause', callback),
   onShortcutToggle: (callback) => ipcRenderer.on('shortcut-toggle', callback)
