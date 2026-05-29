@@ -33,6 +33,7 @@
     </div>
 
     <button id="settingsBtn" class="btn btn-settings">⚙️ 设置</button>
+    <button id="statsBtn" class="btn btn-settings">📊 统计</button>
 
     <div id="settingsModal" class="modal hidden">
       <div class="modal-content">
@@ -52,6 +53,25 @@
         <div class="modal-buttons">
           <button id="saveSettings" class="btn btn-primary">保存</button>
           <button id="cancelSettings" class="btn btn-secondary">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="statsModal" class="modal hidden">
+      <div class="modal-content stats-modal-content">
+        <h2>专注统计</h2>
+        <div class="stats-tabs">
+          <button id="weeklyTab" class="stats-tab active">周报</button>
+          <button id="monthlyTab" class="stats-tab">月报</button>
+        </div>
+        <div class="stats-navigation">
+          <button id="prevPeriod" class="btn btn-secondary">◀ 上期</button>
+          <span id="statsPeriod" class="stats-period"></span>
+          <button id="nextPeriod" class="btn btn-secondary">下期 ▶</button>
+        </div>
+        <div id="statsContent" class="stats-content"></div>
+        <div class="modal-buttons">
+          <button id="closeStats" class="btn btn-primary">关闭</button>
         </div>
       </div>
     </div>

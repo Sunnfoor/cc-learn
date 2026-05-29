@@ -189,3 +189,85 @@ h1 {
   flex: 1;
   padding: 10px;
 }
+
+/* Stats Modal */
+.stats-modal-content {
+  width: 380px;
+}
+
+.stats-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.stats-tab {
+  flex: 1;
+  padding: 10px;
+  background: #2a2a4a;
+  border: none;
+  border-radius: 8px;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.stats-tab.active {
+  background: #e94560;
+  color: white;
+}
+
+.stats-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.stats-period {
+  font-size: 14px;
+  color: #e94560;
+}
+
+.stats-content {
+  background: #0f3460;
+  border-radius: 10px;
+  padding: 20px;
+  min-height: 200px;
+}
+
+.stats-summary {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.stats-main-number {
+  font-size: 48px;
+  font-weight: bold;
+  color: #e94560;
+}
+
+.stats-main-label {
+  font-size: 14px;
+  color: #888;
+  margin-top: 5px;
+}
+
+.stats-detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.stats-detail-row:last-child {
+  border-bottom: none;
+}
+
+.stats-trend {
+  color: #4ade80;
+}
+
+.stats-trend.down {
+  color: #f87171;
+}
